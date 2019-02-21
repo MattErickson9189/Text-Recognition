@@ -2,6 +2,8 @@ import cv2
 
 path = "/home/matt/Documents/PythonWorkspace/MachineLearning/School/TextRecognition/Data/words/a02/a02-004/a02-004-00-03.png"
 
+
+
 def resizeImg(path):
 
     image = cv2.imread(path)
