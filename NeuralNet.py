@@ -1,20 +1,14 @@
-import matplotlib.pyplot as plt
-from sklearn.datasets import load_digits
+import math
+import numpy as np
 
-digits = load_digits()
-
-import pylab as pl
-
-pl.gray()
-pl.matshow(digits.images[0])
+# sends the number through a sigmoid function in order to bring it between the range of 0 and 1
+def sigmoid(x):
+    return 1 / (1 + math.exp(-5 * x))
 
 
-images_and_labels = list(zip(digits.images, digits.target))
-plt.figure(figsize=(5,5))
-for index, (image, label) in enumerate(images_and_labels[:15]):
-    plt.subplot(3,5, index+1)
-    plt.axis('off')
-    plt.imshow(image, cmap=plt.cm.gray_r, interpolation='nearest')
-    plt.title('%i' % label)
-    plt.show()
+def tahn(x):
+    return (math.exp(2 * x) - 1) / (math.exp(2 * x) + 1)
+
+
+np.random.seed(1)
 
