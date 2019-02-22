@@ -1,6 +1,6 @@
 import cv2
 
-path = "/home/matt/Documents/PythonWorkspace/MachineLearning/School/TextRecognition/Data/words/a02/a02-004/a02-004-00-03.png"
+path = "./Data/words/a02/a02-004/a02-004-00-03.png"
 
 
 
@@ -23,7 +23,6 @@ def resizeImg(path):
     cv2.imshow("resized",resized)
     print(resized.shape)
     cv2.waitKey(0)
-
 
 
 resizeImg(path)
