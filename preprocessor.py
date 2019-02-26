@@ -1,12 +1,10 @@
 import cv2
 
-path = "./Data/words/a02/a02-004/a02-004-00-03.png"
-
-
-
 def resizeImg(path):
 
+    print(path)
     image = cv2.imread(path)
+    print()
     h = image.shape[0]
     w = image.shape[1]
 
@@ -19,10 +17,7 @@ def resizeImg(path):
         dim = (int(w * r), height)
 
     resized = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
-    cv2.imshow("original", image)
-    cv2.imshow("resized",resized)
-    print(resized.shape)
+    #return resized
+    cv2.imshow("img", resized)
     cv2.waitKey(0)
 
-
-resizeImg(path)
