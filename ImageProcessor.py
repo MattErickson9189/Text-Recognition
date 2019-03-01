@@ -1,4 +1,4 @@
-import os, sys
+import os
 from preprocessor import resizeImg
 import cv2
 path = "./Data/words/"
