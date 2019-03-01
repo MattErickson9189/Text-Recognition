@@ -1,5 +1,6 @@
 import cv2
 import os
+
 def resizeImg(path):
 
     try:
@@ -16,10 +17,10 @@ def resizeImg(path):
             r = height / float(h)
             dim = (int(w * r), height)
 
-            #creates the resized image
+            # creates the resized image
             resized = cv2.resize(image, dim, interpolation= cv2.INTER_AREA)
 
-            #gets the files extension
+            # gets the files extension
             ext = os.path.splitext(path)[1]
 
             # gets the files base name and takes the file extension off

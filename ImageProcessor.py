@@ -3,6 +3,7 @@ from preprocessor import resizeImg
 import cv2
 path = "./Data/words/"
 count = 0
+
 for(dirpath, dirnames, filenames) in os.walk(path):
     for files in filenames:
         count= count+1
