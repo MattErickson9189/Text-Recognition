@@ -7,25 +7,37 @@ import os
 class NeuralNet:
     #This is a class that will have methods for setting up the CNN and RNN
 
-    def __init__(self, batchSize, learningRate, trainSessions):
+    height = 128
+    width = 32
+
+    def __init__(self, batchSize, learningRate, trainSessions, wordList):
 
         self.batchSize = batchSize
         self.learningRate = learningRate
         self.trainSession = trainSessions
+        self.list = wordList
 
-        n_classes = 26
+        self.CNN(self)
 
-        x = tf.placeholders("float", [None, 128,32,1])
-        y = tf.placeholders("float", [None, n_classes])
+        
 
+    def CNN(self):
 
-    def conv2d(self,x,w,b,strides =1):
-        #Wrapped for bias and relu activation
+        cnnIn = tf.expand_dims(input=self.inputImgs, axis=3)
 
-        x = tf.nn.conv2d(x,w,strides = [1,strides,strides,1], padding = "SAME")
-        y = tf.nn.bias_add(x,b)
-        return tf.nn.relu(x)
+        kValues = [5,5,3,3]
+        featureVals = [1,32,64,128,128,256]
+        strideVals = poolVals = [(2, 2), (2, 2), (1, 2), (1, 2), (1, 2)]
+        numLayers = len(strideVals)
 
-    def maxpool2D(selfx, k=2):
-        return tf.nn.max_pool(x, ksize=[1,k,k,1], strides=[1,k,k,1],padding="SAME")
-    
+        pool = cnnIn
+
+        for i in range(numLayers):
+
+            kernel = tf.Variable(tf.truncated_normal([kValues[i], kValues[i], featureVals[i], featureVals[i+1]], stddev=0.1))
+            conv = tf.nn.conv2d(pool,kernel, padding="SAME", strides=(1,1,1,1))
+            conv_norm = tf.layers.batch_normalization(conv, training=self.is_train)
+            relu = tf.nn.relu(conv_norm)
+            pool = tf.nn.max_pool(relu, (1, poolVals[i][0], poolVals[i][1], 1), (1, strideVals[i][0], strideVals[i][1],1), "VAILD")
+
+        self.cnnOut4d = pool
