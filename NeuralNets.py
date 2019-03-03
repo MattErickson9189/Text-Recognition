@@ -19,7 +19,14 @@ class NeuralNet:
 
         self.CNN(self)
 
+        self.numTrained = 0
+        self.learningRate = tf.placeholder(tf.float, shape=[])
+        self.update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(self.update_ops):
+            self.optimizer= tf.train.RMSPropOptimizer(self.learningRate).minimize(self.loss)
+
         
+
 
     def CNN(self):
 
