@@ -4,10 +4,12 @@ import shutil
 path = "./Data/Resized/"
 trainPath = "./Data/Resized/training/"
 testPath = "./Data/Resized/test/"
-trainCout = 0
-testCount = 0
-#These next few lines are only to be ran once, it puts the first 70% of the images into a training folder
+wordsList = "./Data/words.txt"
 
+
+#These next few lines are only to be ran once, it puts the first 70% of the images into a training folder
+# trainCout = 0
+# testCount = 0
 # for (dirpath, dirnames, filenames) in os.walk(path):
 #     for files in filenames:
 #         if(trainCout < 80500):
@@ -22,3 +24,5 @@ testCount = 0
 #             shutil.move(src,dest)
 #             testCount +=1
 #             print(dest)
+
+
