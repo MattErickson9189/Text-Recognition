@@ -25,7 +25,7 @@ class NeuralNet:
         with tf.control_dependencies(self.update_ops):
             self.optimizer= tf.train.RMSPropOptimizer(self.learningRate).minimize(self.loss)
 
-        
+
 
 
     def CNN(self):
