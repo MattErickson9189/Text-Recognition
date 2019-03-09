@@ -3,19 +3,27 @@ import numpy as np
 import os
 
 
+class DecoderType:
+    BestPath = 0
+    BeamSearch = 1
+    WordBeamSearch = 2
 
 class NeuralNet:
     #This is a class that will have methods for setting up the CNN and RNN
 
-    height = 128
-    width = 32
-
-    def __init__(self, batchSize, learningRate, trainSessions, wordList):
+    size = (128,32)
+    maxTextLength = 32
+    def __init__(self, batchSize, learningRate, trainSessions, wordList, mustRestore = False):
 
         self.batchSize = batchSize
         self.learningRate = learningRate
         self.trainSession = trainSessions
         self.list = wordList
+        self.restore = mustRestore
+
+        self.isTrain = tf.placeholder(tf.bool, name="isTrain")
+
+        self.inputImgs = tf.placeholder(tf.float32, shape=(None, NeuralNet.size[0], NeuralNet.size[1]))
 
         self.CNN(self)
 
@@ -25,8 +33,29 @@ class NeuralNet:
         with tf.control_dependencies(self.update_ops):
             self.optimizer= tf.train.RMSPropOptimizer(self.learningRate).minimize(self.loss)
 
+        (self.sess, self.saver) = self.setUpTF()
 
 
+
+    def setUpTF(self):
+
+        sess=tf.Session()
+
+        saver = tf.train.Saver(max_to_keep=1)
+        saveLocation = "./SavedModel"
+        latest = tf.train.latest_checkpoint(saveLocation)
+
+        #Checks to see if there is a saved model
+        if self.restore and not latest:
+            raise Exception('No saved model in: ', saveLocation)
+
+        #Load Model
+        if latest:
+            print('Loading variables from ', latest)
+        else:
+            print('Starting with fresh model')
+            sess.run(tf.global_variables_initializer())
+        return (sess,saver)
 
     def CNN(self):
 
@@ -63,7 +92,7 @@ class NeuralNet:
                            ctc_merge_repeated=True))
 
         # calc loss for each element to compute label probability
-        self.savedCtcInput = tf.placeholder(tf.float32, shape=[Model.maxTextLen, None, len(self.charList) + 1])
+        self.savedCtcInput = tf.placeholder(tf.float32, shape=[NeuralNet.maxTextLen, None, len(self.charList) + 1])
         self.lossPerElement = tf.nn.ctc_loss(labels=self.gtTexts, inputs=self.savedCtcInput,
                                              sequence_length=self.seqLen, ctc_merge_repeated=True)
 
@@ -79,8 +108,8 @@ class NeuralNet:
 
             # prepare information about language (dictionary, characters in dataset, characters forming words)
             chars = str().join(self.list)
-            wordChars = open('../Data/Lists/wordCharList.txt').read().splitlines()[0]
-            corpus = open('../Data/Lists/corpus.txt').read()
+            wordChars = open('./Data/Lists/wordCharList.txt').read().splitlines()[0]
+            corpus = open('./Data/Lists/corpus.txt').read()
 
             # decode using the "Words" mode of word beam search
             self.decoder = word_beam_search_module.word_beam_search(tf.nn.softmax(self.ctcIn3dTBC, dim=2), 50, 'Words',
@@ -111,4 +140,10 @@ class NeuralNet:
         sparse = self.toSparse(batch.gtTexts)
         #Decay the learning rate
         rate = .01 if self.numTrained < 10 else (.001 if self.numTrained< 10000 else .00010)
-        evalList = [self.optimizer,]
+        evalList = [self.optimizer, self.loss]
+        feedDict = {self.inputImgs : batch.imgs, self.gtTexts : sparse, self.seqLen : [NeuralNet.maxTextLength] * numBatchOfElements, self.learningRate : rate, self.isTrain: True}
+        (_, lossVal) = self.sess.run(evalList.feedDict)
+        self.numTrained += 1
+        return lossVal
+
+
