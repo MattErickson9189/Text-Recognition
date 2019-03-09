@@ -48,3 +48,8 @@ class NeuralNet:
             pool = tf.nn.max_pool(relu, (1, poolVals[i][0], poolVals[i][1], 1), (1, strideVals[i][0], strideVals[i][1],1), "VAILD")
 
         self.cnnOut4d = pool
+
+
+
+    def trainBatch(self, batch):
+        
