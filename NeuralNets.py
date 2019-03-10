@@ -146,4 +146,6 @@ class NeuralNet:
         self.numTrained += 1
         return lossVal
 
+    def inferBatch(self, batch, calcProbaility=False, ProbabilityOfGT = False):
+        
 
