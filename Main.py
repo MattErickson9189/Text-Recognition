@@ -27,8 +27,23 @@ def train(NeuralNet, dataLoader):
             loss = NeuralNet.trainBatch(batch)
             print('Batch: ',index[0],'/',index[1],' Loss: ',loss)
 
-            errorRate = validate(NeuralNet, dataLoader)
+        errorRate = validate(NeuralNet, dataLoader)
 
+        if errorRate < bestCharErrorRate:
+            print('Character  error rate improved, saving model')
+            bestCharErrorRate= errorRate
+            cyclesSinceImprovement = 0
+            NeuralNet.save()
+            open('./Data/Lists/accuracy.txt', 'a').write('Validation character error rate of saved model: %f%%' % (errorRate * 100.00))
+
+        else:
+
+            print('Char Error Rate Not Improved')
+            cyclesSinceImprovement += 1
+
+        if cyclesSinceImprovement >= earlyStopping:
+            print('Max cycles since improvement reached...Stopping...')
+            break
 
 
 def validate(model, dataLoad):
