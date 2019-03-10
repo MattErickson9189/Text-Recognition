@@ -1,5 +1,5 @@
 from DataLoad import DataLoader, Batch
-from NeuralNets import NeuralNet
+from NeuralNets import NeuralNet, DecoderType
 import editdistance
 
 def train(NeuralNet, dataLoader):
@@ -90,3 +90,34 @@ def infer(model, fnImg):
     print('Probability: ', '"' + probability[0])
 
 
+def Main():
+
+    option = input('What action would you like to take?')
+
+    #If train or validate
+    if option == 'train' or option == 'validate':
+
+        loader = DataLoader('./Data/Resized/', NeuralNet.batchSize, NeuralNet.maxTextLength)
+
+        #save characters for reference
+        open('./Data/Lists/charList.txt', 'w').write(str().join(loader.charList))
+
+        #Save words for reference
+        open('./Data/Lists/corpus.txt', 'w').write(str().join(loader.trainingWords + loader.testWords))
+
+        if option == 'train':
+            model = NeuralNet(loader.charList, DecoderType.BestPath )
+            train(model,loader)
+        else:
+            model = NeuralNet(loader.charList, DecoderType.BestPath, mustRestore=True)
+            validate(model,loader)
+
+    #Else test on input image
+    else:
+        print(open('./Data/Lists/accuracy.txt').read())
+        img = input("Input the path of the test image")
+        model = NeuralNet(open('./Data/Lists/charList.txt').read(), DecoderType.BestPath, mustRestore=True)
+        infer(model, img)
+
+
+Main()
