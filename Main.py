@@ -25,4 +25,25 @@ def train(NeuralNet, dataLoader):
         while dataLoader.hasNext():
             index = dataLoader.getIndex()
             batch = dataLoader.getNext()
-            loss = NeuralNet
+            loss = NeuralNet.trainBatch(batch)
+            print('Batch: ',index[0],'/',index[1],' Loss: ',loss)
+
+            errorRate = validate(NeuralNet, dataLoader)
+
+
+
+def validate(model, dataLoad):
+
+    print('Validating')
+    dataLoad.trainSet()
+    numCharErr = 0
+    charTotal = 0
+    numWordOK = 0
+    wordTotal = 0
+
+    while(dataLoad.hasNext()):
+
+        index = dataLoad.getIndex()
+        print('Batch:', index[0],'/', index[1])
+        batch = dataLoad.getNext()
+        (recognized,_) = NeuralNet
