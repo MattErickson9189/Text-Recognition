@@ -78,3 +78,15 @@ def validate(model, dataLoad):
     wordAccuracy = numWordOK / wordTotal
     print('Character Error rate: %f%%. Word Accuracy: %f%%.' % (charErrorRate*100.00, wordAccuracy * 100.00))
     return charErrorRate
+
+
+
+def infer(model, fnImg):
+
+    batch= Batch(None, fnImg)
+    (recognized, probability) = NeuralNet.inferBatch(batch, True)
+
+    print('Recognized: ', '"' + recognized[0] + '"')
+    print('Probability: ', '"' + probability[0])
+
+
