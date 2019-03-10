@@ -21,6 +21,7 @@ class NeuralNet:
         self.list = wordList
         self.restore = mustRestore
         self.decoder = decoderType
+        self.snapID = 0
 
         self.isTrain = tf.placeholder(tf.bool, name="isTrain")
 
@@ -190,3 +191,7 @@ class NeuralNet:
             probs = np.exp(-lossVals)
         return (texts, probs)
 
+
+    def save(self):
+        self.snapID += 1
+        self.saver.save(self.sess, './Data/SavedModel/modelSnapshot', global_step=self.snapID)
