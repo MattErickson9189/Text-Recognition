@@ -13,13 +13,14 @@ class NeuralNet:
 
     size = (128,32)
     maxTextLength = 32
-    def __init__(self, batchSize, learningRate, trainSessions, wordList, mustRestore = False):
+    def __init__(self, batchSize, learningRate, trainSessions, wordList,decoderType=DecoderType.BestPath, mustRestore = False):
 
         self.batchSize = batchSize
         self.learningRate = learningRate
         self.trainSession = trainSessions
         self.list = wordList
         self.restore = mustRestore
+        self.decoder = decoderType
 
         self.isTrain = tf.placeholder(tf.bool, name="isTrain")
 
@@ -146,6 +147,28 @@ class NeuralNet:
         self.numTrained += 1
         return lossVal
 
+    def decoderOutputText(self, ctcOut, batchSize):
+
+        encodedLabelStrs = [[] for i in range(batchSize)]
+
+        if self.decoder == DecoderType.WordBeamSearch:
+            blank = len(self.list)
+            for b in range(batchSize)
+                for label in ctcOut[b]:
+                    if label == blank:
+                        break
+                    encodedLabelStrs[b].append(label)
+        else:
+            decoded = ctcOut[0][0]
+
+            idxDict = {b : [] for b in range(batchSize)}
+            for (idx, idx2d) in enumerate(decoded.indices):
+                label = decoded.values[idx]
+                batchElement = idx2d[0]
+                encodedLabelStrs[batchElement].append(label)
+
+        return [str().join([self.list[c] for c in labelStr ]) for labelStr in encodedLabelStrs]
+
 
     def inferBatch(self, batch, calcProbaility=False, ProbabilityOfGT = False):
 
@@ -154,5 +177,5 @@ class NeuralNet:
         feedDict = {self.inputImgs: batch.imgs, self.seqLen : [NeuralNet.maxTextLength] * numOfElements, self .isTrain: False}
         evalRes= self.sess.run([self.decoder,self.ctcIn3dTBC], feedDict)
         decoded = evalRes[0]
-        texts = self.decoderOutputToText
+        texts =
 
