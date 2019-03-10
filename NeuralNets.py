@@ -153,7 +153,7 @@ class NeuralNet:
 
         if self.decoder == DecoderType.WordBeamSearch:
             blank = len(self.list)
-            for b in range(batchSize)
+            for b in range(batchSize):
                 for label in ctcOut[b]:
                     if label == blank:
                         break
