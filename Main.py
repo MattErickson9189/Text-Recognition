@@ -1,7 +1,6 @@
 from DataLoad import DataLoader, Batch
 from NeuralNets import NeuralNet
-
-
+import editdistance
 
 def train(NeuralNet, dataLoader):
 
@@ -46,4 +45,21 @@ def validate(model, dataLoad):
         index = dataLoad.getIndex()
         print('Batch:', index[0],'/', index[1])
         batch = dataLoad.getNext()
-        (recognized,_) = NeuralNet
+        (recognized,_) = NeuralNet.inferBatch(batch)
+
+        print('Ground Truth -> Recognized')
+        for i in range(len(recognized)):
+
+            numWordOK +=1 if batch.gtTexts[i] == recognized[i] else 0
+            wordTotal +=1
+            dist = editdistance.eval(recognized[i], batch.gtTexts[i])
+            numCharErr +=dist
+            charTotal += len(batch.gtTexts[i])
+            print('OK' if dist==0 else '[ERROR %d]' %dist, '"'+ batch.gtTexts[i] + '"', '->', '"' + recognized[i] + '"')
+
+
+    #Print the results
+    charErrorRate = numCharErr /charTotal
+    wordAccuracy = numWordOK / wordTotal
+    print('Character Error rate: %f%%. Word Accuracy: %f%%.' % (charErrorRate*100.00, wordAccuracy * 100.00))
+    return charErrorRate
