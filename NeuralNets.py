@@ -177,5 +177,16 @@ class NeuralNet:
         feedDict = {self.inputImgs: batch.imgs, self.seqLen : [NeuralNet.maxTextLength] * numOfElements, self .isTrain: False}
         evalRes= self.sess.run([self.decoder,self.ctcIn3dTBC], feedDict)
         decoded = evalRes[0]
-        texts =
+        texts = self.decoderOutputText(decoded, numOfElements)
+
+        probs = None
+        if calcProbaility:
+
+            sparse= self.toSparse(batch.gtTexts) if ProbabilityOfGT else self.toSparse(texts)
+            ctcInput = evalRes[1]
+            evalList = self.lossPerElement
+            feedDict = {self.savedCtcInput : ctcInput, self.gtTexts: sparse, self.seqLen: [NeuralNet.maxTextLength] * numOfElements, self.isTrain: False}
+            lossVals = self.sess.run(evalList,feedDict)
+            probs = np.exp(-lossVals)
+        return (texts, probs)
 
