@@ -97,3 +97,4 @@ class DataLoader:
         gtTexts = [self.images[i].gtText for i in batchRange]
         self.index += self.batchSize
         return Batch(gtTexts, self.images[self.index])
+
