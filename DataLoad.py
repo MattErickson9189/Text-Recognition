@@ -99,4 +99,13 @@ class DataLoader:
         return Batch(gtTexts, self.images[self.index])
 
     def truncateLabel(self, text, MaxTextLength):
-        
+        #Maps the fileName to the name in the words list
+        cost =0
+        for i in range(len(text)):
+            if i != 0 and text[1] == text[i-1]:
+                cost+=2
+            else:
+                cost+=1
+            if cost>MaxTextLength:
+                return text[:i]
+        return text
