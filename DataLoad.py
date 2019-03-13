@@ -32,7 +32,7 @@ class DataLoader:
 
 
         #Loads the word list
-        list = open(wordsList)
+        list = open(wordsList).read()
 
         chars = set()
 
@@ -42,7 +42,7 @@ class DataLoader:
                 continue
 
             lineSplit = line.strip().split(' ')
-            assert len(lineSplit) >= 9
+            #assert len(lineSplit) >= 9
 
 
             #formats the file path to match the words.txt
