@@ -69,7 +69,6 @@ class DataLoader:
         self.trainSet()
 
         #List all the chars in the set
-        print(chars)
         #self.charList = sorted(list(chars))
         self.charList = sorted(chars)
 
