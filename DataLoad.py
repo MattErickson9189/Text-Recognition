@@ -32,26 +32,24 @@ class DataLoader:
 
 
         #Loads the word list
-        list = open(wordsList).read()
+        list = open(wordsList)
 
         chars = set()
 
         for line in list:
-
             if not line or line[0] =='#':
                 continue
 
             lineSplit = line.strip().split(' ')
-            #assert len(lineSplit) >= 9
+            assert len(lineSplit) >= 9
 
+            #adds -Resized.png to the file name to match the resized directory
+            filePath = path + lineSplit[0] + '-Resized.png'
 
-            #formats the file path to match the words.txt
-            fileNameSplit = lineSplit[0].split('-')
-            filePath = path + fileNameSplit[0]+ '/' + fileNameSplit[0] + '-' + fileNameSplit[1] + '/' + lineSplit[0] + '.png'
-
+            #gtText is what the writing in the image is
             gtText = self.truncateLabel(' '.join(lineSplit[8:]), textLength)
-            chars = chars.union(set(list(gtText)))
-
+            #chars = chars.union(set(list(gtText)))
+            chars = chars.union(set(gtText))
             self.images.append(data(gtText,filePath))
 
         #Split the data and store into lists
@@ -71,7 +69,9 @@ class DataLoader:
         self.trainSet()
 
         #List all the chars in the set
-        self.charList = sorted(list(chars))
+        print(chars)
+        #self.charList = sorted(list(chars))
+        self.charList = sorted(chars)
 
     def trainSet(self):
         self.DataAugmentation = True
