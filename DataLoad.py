@@ -98,3 +98,5 @@ class DataLoader:
         self.index += self.batchSize
         return Batch(gtTexts, self.images[self.index])
 
+    def truncateLabel(self, text, MaxTextLength):
+        
