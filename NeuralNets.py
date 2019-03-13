@@ -27,6 +27,7 @@ class NeuralNet:
         self.inputImgs = tf.placeholder(tf.float32, shape=(None, NeuralNet.size[0], NeuralNet.size[1]))
 
         self.CNN()
+        self.RNN()
         self.CTC()
 
         self.numTrained = 0
@@ -83,11 +84,29 @@ class NeuralNet:
         self.cnnOut4d = pool
 
     def RNN(self):
-        
+        #Creates the recurrent neural network and sets up its layers
+        rnnInput = tf.squeeze(self.cnnOut4d, axis=[2])
+
+        numHidden= 256
+        cells= [tf.contrib.rnn.LSTMCell(num_units=numHidden, state_is_tuple=True) for __ in range(2)]
+
+        #Stack the cells
+        stacked = tf.contrib.rnn.MultiRNNCell(cells,state_is_tuple=True)
+
+        #This part is from internet
+        ((fw,bw), _) = tf.nn.bidirectional_dynamic_rnn(cell_fw=stacked, cell_bw=stacked, inputs=rnnInput, dtype = rnnInput.dtype)
+
+        concat = tf.expand_dims(tf.concat([fw,bw], 2), 2)
+
+        #Project output to chars
+        kernel = tf.Variable(tf.truncated_normal([1,1,numHidden * 2, len(self.list) + 1], stddev =0.1))
+
+        self.rnnOut = tf.squeeze(tf.nn.atrous_conv2d(value=concat, filters=kernel, rate=1, padding='SAME'),axis=[2])
+
 
     def CTC(self):
         # BxTxC -> TxBxC
-        self.ctcIn3dTBC = tf.transpose(self.rnnOut3d, [1, 0, 2])
+        self.ctcIn3dTBC = tf.transpose(self.rnnOut, [1, 0, 2])
         # ground truth text as sparse tensor
         self.gtTexts = tf.SparseTensor(tf.placeholder(tf.int64, shape=[None, 2]), tf.placeholder(tf.int32, [None]),
                                        tf.placeholder(tf.int64, [2]))
@@ -99,7 +118,7 @@ class NeuralNet:
                            ctc_merge_repeated=True))
 
         # calc loss for each element to compute label probability
-        self.savedCtcInput = tf.placeholder(tf.float32, shape=[NeuralNet.maxTextLen, None, len(self.charList) + 1])
+        self.savedCtcInput = tf.placeholder(tf.float32, shape=[NeuralNet.maxTextLength, None, len(self.charList) + 1])
         self.lossPerElement = tf.nn.ctc_loss(labels=self.gtTexts, inputs=self.savedCtcInput,
                                              sequence_length=self.seqLen, ctc_merge_repeated=True)
 
