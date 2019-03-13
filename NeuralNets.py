@@ -19,7 +19,7 @@ class NeuralNet:
 
         self.list = wordList
         self.restore = mustRestore
-        self.decoder = decoderType
+        self.decoderType = decoderType
         self.snapID = 0
 
         self.isTrain = tf.placeholder(tf.bool, name="isTrain")
@@ -118,7 +118,7 @@ class NeuralNet:
                            ctc_merge_repeated=True))
 
         # calc loss for each element to compute label probability
-        self.savedCtcInput = tf.placeholder(tf.float32, shape=[NeuralNet.maxTextLength, None, len(self.charList) + 1])
+        self.savedCtcInput = tf.placeholder(tf.float32, shape=[NeuralNet.maxTextLength, None, len(self.list) + 1])
         self.lossPerElement = tf.nn.ctc_loss(labels=self.gtTexts, inputs=self.savedCtcInput,
                                              sequence_length=self.seqLen, ctc_merge_repeated=True)
 
@@ -176,7 +176,7 @@ class NeuralNet:
 
         encodedLabelStrs = [[] for i in range(batchSize)]
 
-        if self.decoder == DecoderType.WordBeamSearch:
+        if self.decoderType == DecoderType.WordBeamSearch:
             blank = len(self.list)
             for b in range(batchSize):
                 for label in ctcOut[b]:
