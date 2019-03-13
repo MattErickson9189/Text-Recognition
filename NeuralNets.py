@@ -14,10 +14,9 @@ class NeuralNet:
     size = (128,32)
     maxTextLength = 32
     batchSize = 50
-    def __init__(self, learningRate, trainSessions, wordList,decoderType=DecoderType.BestPath, mustRestore = False):
+    def __init__(self, wordList,decoderType=DecoderType.BestPath, mustRestore = False):
 
-        self.learningRate = learningRate
-        self.trainSession = trainSessions
+
         self.list = wordList
         self.restore = mustRestore
         self.decoder = decoderType
