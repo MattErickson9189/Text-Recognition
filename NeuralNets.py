@@ -149,7 +149,7 @@ class NeuralNet:
 
         for(batchElement, text) in enumerate(text):
 
-            labelStr = [str.charList.index(c) for c in text]
+            labelStr = [self.list.index(c) for c in text]
 
             if len(labelStr) > shape[1]:
                 shape[1]= len(labelStr)
@@ -168,7 +168,8 @@ class NeuralNet:
         rate = .01 if self.numTrained < 10 else (.001 if self.numTrained< 10000 else .00010)
         evalList = [self.optimizer, self.loss]
         feedDict = {self.inputImgs : batch.imgs, self.gtTexts : sparse, self.seqLen : [NeuralNet.maxTextLength] * numBatchOfElements, self.learningRate : rate, self.isTrain: True}
-        (_, lossVal) = self.sess.run(evalList.feedDict)
+
+        (_, lossVal) = self.sess.run(evalList,feedDict)
         self.numTrained += 1
         return lossVal
 

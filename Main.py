@@ -92,7 +92,8 @@ def infer(model, fnImg):
 
 def Main():
 
-    option = input('What action would you like to take?')
+    #option = input('What action would you like to take?')
+    option = "train"
 
     #If train or validate
     if option == 'train' or option == 'validate':
