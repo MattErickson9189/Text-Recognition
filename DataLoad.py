@@ -2,7 +2,7 @@ import os
 import shutil
 import random
 import numpy as np
-
+import cv2
 path = "./Data/Resized/"
 wordsList = "./Data/words.txt"
 
@@ -13,11 +13,10 @@ class data:
         self.gtText = gtText
         self.filePath = filePath
 
-
 class Batch:
-	def __init__(self, gtTexts, imgs):
-		self.imgs = np.stack(imgs, axis=0)
-		self.gtTexts = gtTexts
+    def __init__(self, gtTexts, imgs):
+	    self.imgs = np.stack(imgs, axis=0)
+	    self.gtTexts = gtTexts
 
 class DataLoader:
 
@@ -94,8 +93,11 @@ class DataLoader:
     def getNext(self):
         batchRange = range(self.index, self.index + self.batchSize)
         gtTexts = [self.images[i].gtText for i in batchRange]
-        self.index += self.batchSize
-        return Batch(gtTexts, self.images[self.index])
+        #imgs = [cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE) for i in batchRange]
+        for i in batchRange:
+            imgs = cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE)
+            self.index += self.batchSize
+        return Batch(gtTexts, imgs)
 
     def truncateLabel(self, text, MaxTextLength):
         #Maps the fileName to the name in the words list
