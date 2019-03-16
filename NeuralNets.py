@@ -24,7 +24,7 @@ class NeuralNet:
 
         self.isTrain = tf.placeholder(tf.bool, name="isTrain")
 
-        self.inputImgs = tf.placeholder(tf.float32, shape=(None, NeuralNet.size[0], NeuralNet.size[1]))
+        self.inputImgs = tf.placeholder(tf.float32, shape=(None,NeuralNet.size[0], NeuralNet.size[1]))
 
         self.CNN()
         self.RNN()
@@ -167,6 +167,18 @@ class NeuralNet:
         #Decay the learning rate
         rate = .01 if self.numTrained < 10 else (.001 if self.numTrained< 10000 else .00010)
         evalList = [self.optimizer, self.loss]
+
+        # shape = self.inputImgs.get_shape().as_list()
+        # dim = np.prod(shape[1:])
+        # print(shape, " ", dim)
+        # self.inputImgs = tf.reshape(self.inputImgs, [128,32])
+        # shape = self.inputImgs.get_shape().as_list()
+        # dim = np.prod(shape[1:])
+        #
+        # print("Reshape ",shape, " ", dim)
+        print(type(batch.imgs))
+        batch.imgs = batch.imgs.reshape(-1,128,32)
+
         feedDict = {self.inputImgs : batch.imgs, self.gtTexts : sparse, self.seqLen : [NeuralNet.maxTextLength] * numBatchOfElements, self.learningRate : rate, self.isTrain: True}
 
         (_, lossVal) = self.sess.run(evalList,feedDict)
