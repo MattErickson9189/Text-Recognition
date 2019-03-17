@@ -1,6 +1,5 @@
 import os
 from preprocessor import resizeImg
-import cv2
 path = "./Data/words/"
 count = 0
 
