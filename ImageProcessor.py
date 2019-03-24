@@ -3,13 +3,13 @@ from preprocessor import resizeImg
 path = "./Data/words/"
 count = 0
 
-for(dirpath, dirnames, filenames) in os.walk(path):
-    for files in filenames:
-        count= count+1
-        print("Files Resized:", count)
-        print(files)
-        relative = os.path.join(dirpath,files)
-        resizeImg(relative)
+# for(dirpath, dirnames, filenames) in os.walk(path):
+#     for files in filenames:
+#         count= count+1
+#         print("Files Resized:", count)
+#         print(files)
+#         relative = os.path.join(dirpath,files)
+#         resizeImg(relative)
 
 
 #Checks how many files are in the directory
