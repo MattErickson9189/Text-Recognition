@@ -113,9 +113,16 @@ class NeuralNet:
 
         # calc loss for batch
         self.seqLen = tf.placeholder(tf.int32, [None])
-        self.loss = tf.reduce_mean(
-            tf.nn.ctc_loss(labels=self.gtTexts, inputs=self.ctcIn3dTBC, sequence_length=self.seqLen,
-                           ctc_merge_repeated=True))
+
+        print(self.gtTexts.shape)
+        print(self.ctcIn3dTBC.shape)
+        print(self.seqLen.shape)
+
+        self.ctcIn3dTBC= tf.reshape(self.ctcIn3dTBC, [32,128,80])
+        print(self.ctcIn3dTBC.shape)
+
+        self.loss = tf.reduce_mean(tf.nn.ctc_loss(labels=self.gtTexts, inputs=self.ctcIn3dTBC,
+                                                  sequence_length=self.seqLen, ctc_merge_repeated=True))
 
         # calc loss for each element to compute label probability
         self.savedCtcInput = tf.placeholder(tf.float32, shape=[NeuralNet.maxTextLength, None, len(self.list) + 1])
