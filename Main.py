@@ -98,7 +98,7 @@ def Main():
     #If train or validate
     if option == 'train' or option == 'validate':
 
-        loader = DataLoader(NeuralNet.batchSize, NeuralNet.maxTextLength)
+        loader = DataLoader(NeuralNet.batchSize, NeuralNet.maxTextLength, NeuralNet.size)
 
         #save characters for reference
         open('./Data/Lists/charList.txt', 'w').write(str().join(loader.charList))
