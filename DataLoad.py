@@ -24,6 +24,7 @@ class DataLoader:
         self.DataAugmentation = False
         self.batchSize = batchSize
         self.imgSize = imgSize
+        self.index = 0
         self.textLength = textLength
 
         #store the images in the batch
