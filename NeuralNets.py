@@ -183,8 +183,8 @@ class NeuralNet:
         # dim = np.prod(shape[1:])
         #
         # print("Reshape ",shape, " ", dim)
-        print(type(batch.imgs))
-        batch.imgs = batch.imgs.reshape(-1,128,32)
+        print(batch.imgs.size)
+        batch.imgs.reshape(-1,128,32)
 
         feedDict = {self.inputImgs : batch.imgs, self.gtTexts : sparse, self.seqLen : [NeuralNet.maxTextLength] * numBatchOfElements, self.learningRate : rate, self.isTrain: True}
 
