@@ -86,10 +86,12 @@ class DataLoader:
 
 
     def getIndex(self):
+        #self.index += 1
         return (self.index // self.batchSize +1, len(self.images) // self.batchSize)
 
     def hasNext(self):
-        return self.index + self.batchSize <= len(self.images)
+        #return self.index + self.batchSize <= len(self.images)
+        return self.index <= self.batchSize
 
     def getNext(self):
         batchRange = range(self.index, self.index + self.batchSize)
