@@ -118,8 +118,9 @@ class NeuralNet:
         print(self.ctcIn3dTBC.shape)
         print(self.seqLen.shape)
 
-        self.ctcIn3dTBC= tf.reshape(self.ctcIn3dTBC, [32,128,80])
-        print(self.ctcIn3dTBC.shape)
+        #self.ctcIn3dTBC= tf.reshape(self.ctcIn3dTBC, [32,128,80])
+        #self.ctcIn3dTBC = tf.resize(self.ctcIn3dTBC, [32,128,1])
+        #p#rint(self.ctcIn3dTBC.shape)
 
         self.loss = tf.reduce_mean(tf.nn.ctc_loss(labels=self.gtTexts, inputs=self.ctcIn3dTBC,
                                                   sequence_length=self.seqLen, ctc_merge_repeated=True))
