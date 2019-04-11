@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import cv2
+from preprocessor import individualProcess
 path = "./Data/Resized/"
 wordsList = "./Data/words.txt"
 
@@ -13,15 +14,16 @@ class data:
 
 class Batch:
     def __init__(self, gtTexts, imgs):
-	    self.imgs = np.stack(imgs, axis=0)
-	    self.gtTexts = gtTexts
+        self.imgs = np.stack(imgs, axis=0)
+        self.gtTexts = gtTexts
 
 class DataLoader:
 
-    def __init__(self, batchSize, textLength):
+    def __init__(self, batchSize, textLength, imgSize):
 
         self.DataAugmentation = False
         self.batchSize = batchSize
+        self.imgSize = imgSize
         self.textLength = textLength
 
         #store the images in the batch
@@ -91,10 +93,21 @@ class DataLoader:
     def getNext(self):
         batchRange = range(self.index, self.index + self.batchSize)
         gtTexts = [self.images[i].gtText for i in batchRange]
-        #imgs = [cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE) for i in batchRange]
-        for i in batchRange:
-            imgs = cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE)
-            self.index += self.batchSize
+
+        imgs = [individualProcess(cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE), self.imgSize, self.DataAugmentation) for i in batchRange]
+
+
+        # for i in batchRange:
+        #     #imgs = cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE)
+        #
+        #     imgs = cv2.imread(self.images[i].filePath)
+        #     print(np.prod(imgs.shape))
+        #     print(type(imgs))
+        #     imgs = tuple([tuple(row)] for row in imgs)
+        #     print(type(imgs))
+        #     imgs = cv2.resize(imgs, 2,128,32)
+        #
+        #     self.index += self.batchSize
         return Batch(gtTexts, imgs)
 
     def truncateLabel(self, text, MaxTextLength):
