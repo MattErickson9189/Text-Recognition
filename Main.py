@@ -60,7 +60,7 @@ def validate(model, dataLoad):
         index = dataLoad.getIndex()
         print('Batch:', index[0],'/', index[1])
         batch = dataLoad.getNext()
-        (recognized,_) = NeuralNet.inferBatch(batch)
+        (recognized,_) = NeuralNet.inferBatch(NeuralNet,batch)
 
         print('Ground Truth -> Recognized')
         for i in range(len(recognized)):
