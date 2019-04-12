@@ -20,6 +20,8 @@ class NeuralNet:
         self.list = wordList
         self.restore = mustRestore
         self.decoderType = decoderType
+        self.decoderType = tf.convert_to_tensor(self.decoderType)
+
         self.snapID = 0
 
         self.isTrain = tf.placeholder(tf.bool, name="isTrain")
