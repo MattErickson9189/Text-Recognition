@@ -217,9 +217,9 @@ class NeuralNet:
     def inferBatch(self, batch, calcProbaility=False, ProbabilityOfGT = False):
 
         numOfElements = len(batch.imgs)
-        evalList = [self.decoder] + ([self.ctcIn3dTBC] if calcProbaility else [])
+        evalList = [self.decoderType] + ([self.ctcIn3dTBC] if calcProbaility else [])
         feedDict = {self.inputImgs: batch.imgs, self.seqLen : [NeuralNet.maxTextLength] * numOfElements, self .isTrain: False}
-        evalRes= self.sess.run([self.decoder,self.ctcIn3dTBC], feedDict)
+        evalRes= self.sess.run([self.decoderType,self.ctcIn3dTBC], feedDict)
         decoded = evalRes[0]
         texts = self.decoderOutputText(decoded, numOfElements)
 
