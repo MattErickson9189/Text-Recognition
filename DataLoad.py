@@ -86,31 +86,18 @@ class DataLoader:
 
 
     def getIndex(self):
-        #self.index += 1
         return (self.index // self.batchSize +1, len(self.images) // self.batchSize)
 
     def hasNext(self):
-        #return self.index + self.batchSize <= len(self.images)
-        return self.index <= self.batchSize
+        return self.index + self.batchSize <= len(self.images)
 
     def getNext(self):
         batchRange = range(self.index, self.index + self.batchSize)
         gtTexts = [self.images[i].gtText for i in batchRange]
 
         imgs = [individualProcess(cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE), self.imgSize, self.DataAugmentation) for i in batchRange]
+        self.index += self.batchSize
 
-
-        # for i in batchRange:
-        #     #imgs = cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE)
-        #
-        #     imgs = cv2.imread(self.images[i].filePath)
-        #     print(np.prod(imgs.shape))
-        #     print(type(imgs))
-        #     imgs = tuple([tuple(row)] for row in imgs)
-        #     print(type(imgs))
-        #     imgs = cv2.resize(imgs, 2,128,32)
-        #
-        #     self.index += self.batchSize
         return Batch(gtTexts, imgs)
 
     def truncateLabel(self, text, MaxTextLength):
