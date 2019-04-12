@@ -26,7 +26,7 @@ def train(NeuralNet, dataLoader):
             batch = dataLoader.getNext()
             loss = NeuralNet.trainBatch(batch)
             print('Batch: ',index[0],'/',index[1],' Loss: ',loss)
-
+        print("Out of While")
         errorRate = validate(NeuralNet, dataLoader)
 
         if errorRate < bestCharErrorRate:
