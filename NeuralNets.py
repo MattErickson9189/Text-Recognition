@@ -173,15 +173,6 @@ class NeuralNet:
         rate = .01 if self.numTrained < 10 else (.001 if self.numTrained< 10000 else .00010)
         evalList = [self.optimizer, self.loss]
 
-        # shape = self.inputImgs.get_shape().as_list()
-        # dim = np.prod(shape[1:])
-        # print(shape, " ", dim)
-        # self.inputImgs = tf.reshape(self.inputImgs, [128,32])
-        # shape = self.inputImgs.get_shape().as_list()
-        # dim = np.prod(shape[1:])
-        #
-        # print("Reshape ",shape, " ", dim)
-
 
         batch.imgs.reshape(-1,128,32)
 
@@ -213,7 +204,7 @@ class NeuralNet:
 
         return [str().join([self.list[c] for c in labelStr ]) for labelStr in encodedLabelStrs]
 
-
+    # Makes a prediction on the batch
     def inferBatch(self, batch, calcProbaility=False, ProbabilityOfGT = False):
 
         numOfElements = len(batch.imgs)
