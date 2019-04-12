@@ -84,6 +84,7 @@ class NeuralNet:
             pool = tf.nn.max_pool(relu, (1, poolVals[i][0], poolVals[i][1], 1), (1, strideVals[i][0], strideVals[i][1],1), "VALID")
 
         self.cnnOut4d = pool
+        print("CNN SETUP DONE")
 
     def RNN(self):
         #Creates the recurrent neural network and sets up its layers
@@ -104,6 +105,7 @@ class NeuralNet:
         kernel = tf.Variable(tf.truncated_normal([1,1,numHidden * 2, len(self.list) + 1], stddev =0.1))
 
         self.rnnOut = tf.squeeze(tf.nn.atrous_conv2d(value=concat, filters=kernel, rate=1, padding='SAME'),axis=[2])
+        print("RNN SETUP DONE")
 
 
     def CTC(self):
@@ -148,6 +150,7 @@ class NeuralNet:
             self.decoder = word_beam_search_module.word_beam_search(tf.nn.softmax(self.ctcIn3dTBC, dim=2), 50, 'Words',
                                                                     0.0, corpus.encode('utf8'), chars.encode('utf8'),
                                                                     wordChars.encode('utf8'))
+        print("CTC SETUP DONE")
 
     def toSparse(self, text):
         indices = []
@@ -184,27 +187,34 @@ class NeuralNet:
         self.numTrained += 1
         return lossVal
 
-    def decoderOutputText(self, ctcOut, batchSize):
+    def decoderOutputToText(self, ctcOutput, batchSize):
 
+        # contains string of labels for each batch element
         encodedLabelStrs = [[] for i in range(batchSize)]
 
+        # word beam search: label strings terminated by blank
         if self.decoderType == DecoderType.WordBeamSearch:
-            blank = len(self.list)
+            blank = len(self.charList)
             for b in range(batchSize):
-                for label in ctcOut[b]:
+                for label in ctcOutput[b]:
                     if label == blank:
                         break
                     encodedLabelStrs[b].append(label)
-        else:
-            decoded = ctcOut[0][0]
 
-            idxDict = {b : [] for b in range(batchSize)}
+        # TF decoders: label strings are contained in sparse tensor
+        else:
+            # ctc returns tuple, first element is SparseTensor
+            decoded = ctcOutput[0][0]
+
+            # go over all indices and save mapping: batch -> values
+            idxDict = {b: [] for b in range(batchSize)}
             for (idx, idx2d) in enumerate(decoded.indices):
                 label = decoded.values[idx]
-                batchElement = idx2d[0]
+                batchElement = idx2d[0]  # index according to [b,t]
                 encodedLabelStrs[batchElement].append(label)
 
-        return [str().join([self.list[c] for c in labelStr ]) for labelStr in encodedLabelStrs]
+        # map labels to chars for all batch elements
+        return [str().join([self.charList[c] for c in labelStr]) for labelStr in encodedLabelStrs]
 
     # Makes a prediction on the batch
     def inferBatch(self, batch, calcProbaility=False, ProbabilityOfGT = False):
@@ -212,9 +222,13 @@ class NeuralNet:
         numOfElements = len(batch.imgs)
         evalList = [self.decoderType] + ([self.ctcIn3dTBC] if calcProbaility else [])
         feedDict = {self.inputImgs: batch.imgs, self.seqLen : [NeuralNet.maxTextLength] * numOfElements, self .isTrain: False}
+
         evalRes= self.sess.run([self.decoderType,self.ctcIn3dTBC], feedDict)
+        print(evalRes[0])
+        print(type(evalRes))
         decoded = evalRes[0]
-        texts = self.decoderOutputText(decoded, numOfElements)
+        print(decoded)
+        texts = self.decoderOutputToText(decoded, numOfElements)
 
         probs = None
         if calcProbaility:
