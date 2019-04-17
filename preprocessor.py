@@ -29,7 +29,7 @@ def resizeImg(path):
             baseName = os.path.splitext(baseName)[0]
 
             # Sets the resized name
-            newName = baseName + "-Resized" + ext
+            newName = baseName + ext
 
             newLocation = "./Data/Resized/" + newName
             print(newLocation)
