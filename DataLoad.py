@@ -62,8 +62,8 @@ class DataLoader:
         self.testWords = [x.gtText for x in self.testing]
 
         #Number of images chosen for trainingn per epoch
-        #self.imagesPerEpoch = 25000
-        self.imagesPerEpoch = 200
+
+        self.imagesPerEpoch = 25000
 
         #Start Training
         self.trainSet()
