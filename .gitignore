@@ -4,6 +4,9 @@ Test/
 words/
 
 .idea/
-
+Data/Lists/
+*.xml
+*.pyc
+*.txt
 __*
 
