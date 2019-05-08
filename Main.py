@@ -24,7 +24,7 @@ def train(NeuralNet, dataLoader):
         while dataLoader.hasNext():
             index = dataLoader.getIndex()
             batch = dataLoader.getNext()
-            loss = NeuralNet.trainBatch(batch)
+            loss = NeuralNet.train(batch)
             print('Batch: ',index[0],'/',index[1],' Loss: ',loss)
         errorRate = validate(NeuralNet, dataLoader)
 
@@ -69,7 +69,7 @@ def validate(NeuralNet, dataLoad):
             dist = editdistance.eval(recognized[i], batch.gtTexts[i])
             numCharErr +=dist
             charTotal += len(batch.gtTexts[i])
-            print('OK' if dist==0 else '[ERROR %d]' %dist, '"'+ batch.gtTexts[i] + '"', '->', '"' + recognized[i] + '"')
+            print('OK' if dist==0 else '[ERROR]', '"'+ batch.gtTexts[i] + '"', '->', '"' + recognized[i] + '"')
 
 
     #Print the results

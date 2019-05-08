@@ -33,7 +33,7 @@ class NeuralNet:
         self.CTC()
 
         # setup optimizer to train NN
-        self.batchesTrained = 0
+        self.totalBatches = 0
         self.learningRate = tf.placeholder(tf.float32, shape=[])
         self.update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(self.update_ops):
@@ -47,7 +47,7 @@ class NeuralNet:
         cnnIn4d = tf.expand_dims(input=self.inputImgs, axis=3)
 
         # list of parameters for the layers
-        kernelVals = [5, 5, 3, 3, 3]
+        kernelVals = [7, 7, 5,5, 3, 3, 3]
         #List of the features for the layers
         featureVals = [1, 32, 64, 128, 128, 256]
         strideVals = poolVals = [(2, 2), (2, 2), (1, 2), (1, 2), (1, 2)]
@@ -87,6 +87,7 @@ class NeuralNet:
         # project output to chars (including blank): BxTx1x2H -> BxTx1xC -> BxTxC
         kernel = tf.Variable(tf.truncated_normal([1, 1, numHidden * 2, len(self.charList) + 1], stddev=0.1))
         self.rnnOut3d = tf.squeeze(tf.nn.atrous_conv2d(value=concat, filters=kernel, rate=1, padding='SAME'), axis=[2])
+
 
     def CTC(self):
         # BxTxC -> TxBxC
@@ -200,43 +201,43 @@ class NeuralNet:
         # map labels to chars for all batch elements
         return [str().join([self.charList[c] for c in labelStr]) for labelStr in encodedLabelStrs]
 
-    def trainBatch(self, batch):
+    def train(self, batch):
 
-        numBatchElements = len(batch.imgs)
+        batchElements = len(batch.imgs)
         sparse = self.toSparse(batch.gtTexts)
-        rate = 0.01 if self.batchesTrained < 10 else (
-            0.001 if self.batchesTrained < 10000 else 0.0001)  # decay learning rate
-        evalList = [self.optimizer, self.loss]
-        feedDict = {self.inputImgs: batch.imgs, self.gtTexts: sparse,
-                    self.seqLen: [NeuralNet.maxTextLen] * numBatchElements, self.learningRate: rate, self.is_train: True}
-        (_, lossVal) = self.sess.run(evalList, feedDict)
-        self.batchesTrained += 1
+        #Learning rate
+        rate = 0.01
+        list = [self.optimizer, self.loss]
+        dictionary = {self.inputImgs: batch.imgs, self.gtTexts: sparse,
+                    self.seqLen: [NeuralNet.maxTextLen] * batchElements, self.learningRate: rate, self.is_train: True}
+        (_, lossVal) = self.sess.run(list, dictionary)
+        self.totalBatches += 1
         return lossVal
 
     def inferBatch(self, batch, calcProbability=False, probabilityOfGT=False):
 
-        # decode, optionally save RNN output
-        numBatchElements = len(batch.imgs)
-        evalList = [self.decoder] + ([self.ctcIn3dTBC] if calcProbability else [])
-        feedDict = {self.inputImgs: batch.imgs, self.seqLen: [NeuralNet.maxTextLen] * numBatchElements,
+        # decode each of the labels
+        batchElements = len(batch.imgs)
+        list = [self.decoder] + ([self.ctcIn3dTBC] if calcProbability else [])
+        dictionary = {self.inputImgs: batch.imgs, self.seqLen: [NeuralNet.maxTextLen] * batchElements,
                     self.is_train: False}
-        evalRes = self.sess.run([self.decoder, self.ctcIn3dTBC], feedDict)
-        decoded = evalRes[0]
-        texts = self.decoderOutputToText(decoded, numBatchElements)
+        evaluationRes = self.sess.run([self.decoder, self.ctcIn3dTBC], dictionary)
+        decoded = evaluationRes[0]
+        wordText = self.decoderOutputToText(decoded, batchElements)
 
-        # feed RNN output and recognized text into CTC loss to compute labeling probability
+        # load recognized text into the RNN
         probs = None
         if calcProbability:
-            sparse = self.toSparse(batch.gtTexts) if probabilityOfGT else self.toSparse(texts)
-            ctcInput = evalRes[1]
-            evalList = self.lossPerElement
-            feedDict = {self.savedCtcInput: ctcInput, self.gtTexts: sparse,
-                        self.seqLen: [NeuralNet.maxTextLen] * numBatchElements, self.is_train: False}
-            lossVals = self.sess.run(evalList, feedDict)
+            sparse = self.toSparse(batch.gtTexts) if probabilityOfGT else self.toSparse(wordText)
+            ctcInput = evaluationRes[1]
+            list = self.lossPerElement
+            dictionary = {self.savedCtcInput: ctcInput, self.gtTexts: sparse,
+                        self.seqLen: [NeuralNet.maxTextLen] * batchElements, self.is_train: False}
+            lossVals = self.sess.run(list, dictionary)
             probs = np.exp(-lossVals)
-        return (texts, probs)
+        return (wordText, probs)
 
     def save(self):
-        "save model to file"
+
         self.snapID += 1
-        self.saver.save(self.sess, '../model/snapshot', global_step=self.snapID)
+        self.saver.save(self.sess, './Data/SavedModel/SavedModel.txt', global_step=self.snapID)
