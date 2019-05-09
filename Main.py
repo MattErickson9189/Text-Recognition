@@ -32,7 +32,8 @@ def train(NeuralNet, dataLoader):
             print('Character  error rate improved, saving model')
             bestCharErrorRate= errorRate
             cyclesSinceImprovement = 0
-            NeuralNet.save()
+            #NeuralNet.storeModelValues()
+            NeuralNet.saver.save(NeuralNet.sess, './Data/SavedModel/SavedModel.txt', global_step=NeuralNet.savedModelId)
             open('./Data/Lists/accuracy.txt', 'a').write('Validation character error rate of saved model: %f%%' % (errorRate * 100.00))
 
         else:
@@ -111,13 +112,5 @@ def Main():
         else:
             model = NeuralNet(loader.charList, DecoderType.BestPath, mustRestore=True)
             validate(model,loader)
-
-    #Else test on input image
-    else:
-        print(open('./Data/Lists/accuracy.txt').read())
-        img = input("Input the path of the test image")
-        model = NeuralNet(open('./Data/Lists/charList.txt').read(), DecoderType.BestPath, mustRestore=True)
-        infer(model, img)
-
 
 Main()

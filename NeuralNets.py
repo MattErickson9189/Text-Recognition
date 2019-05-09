@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-import os
 import sys
 
 class DecoderType:
@@ -15,11 +14,11 @@ class NeuralNet:
     maxTextLen = 32
 
     def __init__(self, charList, decoderType=DecoderType.BestPath, mustRestore=False):
-        "init model: add CNN, RNN and CTC and initialize TF"
+
         self.charList = charList
         self.decoderType = decoderType
         self.mustRestore = mustRestore
-        self.snapID = 0
+        self.savedModelId = 0
 
         # Whether to use normalization over a batch or a population
         self.is_train = tf.placeholder(tf.bool, name='is_train')
@@ -66,29 +65,30 @@ class NeuralNet:
 
         self.cnnOut4d = pool
 
+    #Refactor
     def RNN(self):
-        rnnIn3d = tf.squeeze(self.cnnOut4d, axis=[2])
+
+        recurrentInput = tf.squeeze(self.cnnOut4d, axis=[2])
 
         # basic cells which is used to build RNN
-        numHidden = 256
-        cells = [tf.contrib.rnn.LSTMCell(num_units=numHidden, state_is_tuple=True) for _ in range(2)]  # 2 layers
+        hiddenValues = 256
+        cells = [tf.contrib.rnn.LSTMCell(num_units=hiddenValues, state_is_tuple=True) for _ in range(2)]  # 2 layers
 
         # stack basic cells
         stacked = tf.contrib.rnn.MultiRNNCell(cells, state_is_tuple=True)
 
-        # bidirectional RNN
-        # BxTxF -> BxTx2H
-        ((fw, bw), _) = tf.nn.bidirectional_dynamic_rnn(cell_fw=stacked, cell_bw=stacked, inputs=rnnIn3d,
-                                                        dtype=rnnIn3d.dtype)
+        ((fw, bw), _) = tf.nn.bidirectional_dynamic_rnn(cell_fw=stacked, cell_bw=stacked, inputs=recurrentInput,
+                                                        dtype=recurrentInput.dtype)
 
         # BxTxH + BxTxH -> BxTx2H -> BxTx1X2H
         concat = tf.expand_dims(tf.concat([fw, bw], 2), 2)
 
-        # project output to chars (including blank): BxTx1x2H -> BxTx1xC -> BxTxC
-        kernel = tf.Variable(tf.truncated_normal([1, 1, numHidden * 2, len(self.charList) + 1], stddev=0.1))
+        # project output to chars
+        kernel = tf.Variable(tf.truncated_normal([1, 1, hiddenValues * 2, len(self.charList) + 1], stddev=0.1))
         self.rnnOut3d = tf.squeeze(tf.nn.atrous_conv2d(value=concat, filters=kernel, rate=1, padding='SAME'), axis=[2])
 
 
+    #CTC function found online
     def CTC(self):
         # BxTxC -> TxBxC
         self.ctcIn3dTBC = tf.transpose(self.rnnOut3d, [1, 0, 2])
@@ -128,50 +128,65 @@ class NeuralNet:
                                                                     wordChars.encode('utf8'))
 
     def setupTF(self):
-        print('Python: ' + sys.version)
-        print('Tensorflow: ' + tf.__version__)
 
         sess = tf.Session()  # TF session
 
         saver = tf.train.Saver(max_to_keep=1)  # saver saves model to file
         modelDir = './Data/SavedModel/'
-        latestSnapshot = tf.train.latest_checkpoint(modelDir)  # is there a saved model?
 
-        # if model must be restored (for inference), there must be a snapshot
-        if self.mustRestore and not latestSnapshot:
-            raise Exception('No saved model found in: ' + modelDir)
+        currentModel = tf.train.latest_checkpoint(modelDir)
 
-        # load saved model if available
-        if latestSnapshot:
-            print('Init with stored values from ' + latestSnapshot)
-            saver.restore(sess, latestSnapshot)
+
+        if self.mustRestore and not currentModel:
+            print('No saved model found in: ' + modelDir)
+            exit(1)
+
+        # load saved model
+        if currentModel:
+            print('Loading values from ' + currentModel)
+            saver.restore(sess, currentModel)
         else:
-            print('Init with new values')
+            print('Loaded with new values')
             sess.run(tf.global_variables_initializer())
 
         return (sess, saver)
 
-    def toSparse(self, texts):
+
+    def train(self, batch):
+
+        batchElements = len(batch.imgs)
+        sparse = self.tensorSparse(batch.gtTexts)
+        #Learning rate
+        rate = 0.01
+        list = [self.optimizer, self.loss]
+        dictionary = {self.inputImgs: batch.imgs, self.gtTexts: sparse,self.seqLen: [NeuralNet.maxTextLen] * batchElements, self.learningRate: rate, self.is_train: True}
+        (_, totalLoss) = self.sess.run(list, dictionary)
+        self.totalBatches += 1
+        return totalLoss
+
+    def tensorSparse(self, labels):
 
         indices = []
         values = []
-        shape = [len(texts), 0]  # last entry must be max(labelList[i])
+        shape = [len(labels), 0]
 
         # go over all texts
-        for (batchElement, text) in enumerate(texts):
+        for (batchElement, text) in enumerate(labels):
             # convert to string of label (i.e. class-ids)
-            labelStr = [self.charList.index(c) for c in text]
-            # sparse tensor must have size of max. label-string
-            if len(labelStr) > shape[1]:
-                shape[1] = len(labelStr)
+           stringLabel = [self.charList.index(c) for c in text]
+
+           # Checking the size of the tensor
+           tensorSize = len(stringLabel)
+           if tensorSize > shape[1]:
+              shape[1] = len(stringLabel)
             # put each label into sparse tensor
-            for (i, label) in enumerate(labelStr):
-                indices.append([batchElement, i])
-                values.append(label)
+           for (i, label) in enumerate(stringLabel):
+              indices.append([batchElement, i])
+              values.append(label)
 
         return (indices, values, shape)
 
-    def decoderOutputToText(self, ctcOutput, batchSize):
+    def decodeToText(self, ctcOutput, batchSize):
 
 
         # contains string of labels for each batch element
@@ -201,29 +216,16 @@ class NeuralNet:
         # map labels to chars for all batch elements
         return [str().join([self.charList[c] for c in labelStr]) for labelStr in encodedLabelStrs]
 
-    def train(self, batch):
-
-        batchElements = len(batch.imgs)
-        sparse = self.toSparse(batch.gtTexts)
-        #Learning rate
-        rate = 0.01
-        list = [self.optimizer, self.loss]
-        dictionary = {self.inputImgs: batch.imgs, self.gtTexts: sparse,
-                    self.seqLen: [NeuralNet.maxTextLen] * batchElements, self.learningRate: rate, self.is_train: True}
-        (_, lossVal) = self.sess.run(list, dictionary)
-        self.totalBatches += 1
-        return lossVal
-
+    # Refactor
     def inferBatch(self, batch, calcProbability=False, probabilityOfGT=False):
 
         # decode each of the labels
         batchElements = len(batch.imgs)
-        list = [self.decoder] + ([self.ctcIn3dTBC] if calcProbability else [])
         dictionary = {self.inputImgs: batch.imgs, self.seqLen: [NeuralNet.maxTextLen] * batchElements,
-                    self.is_train: False}
+                      self.is_train: False}
         evaluationRes = self.sess.run([self.decoder, self.ctcIn3dTBC], dictionary)
         decoded = evaluationRes[0]
-        wordText = self.decoderOutputToText(decoded, batchElements)
+        wordText = self.decodeToText(decoded, batchElements)
 
         # load recognized text into the RNN
         probs = None
@@ -232,12 +234,7 @@ class NeuralNet:
             ctcInput = evaluationRes[1]
             list = self.lossPerElement
             dictionary = {self.savedCtcInput: ctcInput, self.gtTexts: sparse,
-                        self.seqLen: [NeuralNet.maxTextLen] * batchElements, self.is_train: False}
+                          self.seqLen: [NeuralNet.maxTextLen] * batchElements, self.is_train: False}
             lossVals = self.sess.run(list, dictionary)
             probs = np.exp(-lossVals)
         return (wordText, probs)
-
-    def save(self):
-
-        self.snapID += 1
-        self.saver.save(self.sess, './Data/SavedModel/SavedModel.txt', global_step=self.snapID)

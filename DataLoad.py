@@ -63,7 +63,9 @@ class DataLoader:
 
         #Number of images chosen for trainingn per epoch
 
-        self.imagesPerEpoch = 5000
+        #self.imagesPerEpoch = 5000
+        self.imagesPerEpoch = 100
+
 
         #Start Training
         self.trainSet()
