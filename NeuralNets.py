@@ -211,7 +211,7 @@ class NeuralNet:
         return [str().join([self.charList[c] for c in labelStr]) for labelStr in encodedLabelStrs]
 
     # TODO Refactor
-    def inferBatch(self, batch, calcProbability=False, probabilityOfGT=False):
+    def predictOnBatch(self, batch, calcProbability=False, probabilityOfGT=False):
 
         # decode each of the labels
         batchElements = len(batch.imgs)
