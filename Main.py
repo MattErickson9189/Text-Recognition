@@ -1,5 +1,5 @@
 from DataLoad import DataLoader, Batch
-from NeuralNets import NeuralNet, DecoderType
+from NeuralNets import NeuralNet, decodeType
 import editdistance
 
 def train(NeuralNet, dataLoader):
@@ -65,12 +65,12 @@ def validate(NeuralNet, dataLoad):
         print('Ground Truth -> Recognized')
         for i in range(len(recognized)):
 
-            numWordOK +=1 if batch.gtTexts[i] == recognized[i] else 0
+            numWordOK +=1 if batch.truthTexts[i] == recognized[i] else 0
             wordTotal +=1
-            dist = editdistance.eval(recognized[i], batch.gtTexts[i])
+            dist = editdistance.eval(recognized[i], batch.truthTexts[i])
             numCharErr +=dist
-            charTotal += len(batch.gtTexts[i])
-            print('OK' if dist==0 else '[ERROR]', '"'+ batch.gtTexts[i] + '"', '->', '"' + recognized[i] + '"')
+            charTotal += len(batch.truthTexts[i])
+            print('OK' if dist==0 else '[ERROR]', '"'+ batch.truthTexts[i] + '"', '->', '"' + recognized[i] + '"')
 
 
     #Print the results
@@ -104,13 +104,13 @@ def Main():
         open('./Data/Lists/charList.txt', 'w').write(str().join(loader.charList))
 
         #Save words for reference
-        open('./Data/Lists/corpus.txt', 'w').write(str().join(loader.trainingWords + loader.testWords))
+        open('./Data/Lists/completedWords.txt', 'w').write(str().join(loader.trainingWords + loader.testWords))
 
         if option == 'train':
-            model = NeuralNet(loader.charList, DecoderType.BestPath )
+            model = NeuralNet(loader.charList, decodeType.BestPath )
             train(model,loader)
         else:
-            model = NeuralNet(loader.charList, DecoderType.BestPath, mustRestore=True)
+            model = NeuralNet(loader.charList, decodeType.BestPath, mustRestore=True)
             validate(model,loader)
 
 Main()

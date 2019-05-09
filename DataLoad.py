@@ -13,9 +13,9 @@ class data:
         self.filePath = filePath
 
 class Batch:
-    def __init__(self, gtTexts, imgs):
+    def __init__(self, truthTexts, imgs):
         self.imgs = np.stack(imgs, axis=0)
-        self.gtTexts = gtTexts
+        self.truthTexts = truthTexts
 
 class DataLoader:
 
@@ -95,12 +95,12 @@ class DataLoader:
 
     def getNext(self):
         batchRange = range(self.index, self.index + self.batchSize)
-        gtTexts = [self.images[i].gtText for i in batchRange]
+        truthTexts = [self.images[i].gtText for i in batchRange]
 
         imgs = [individualProcess(cv2.imread(self.images[i].filePath, cv2.IMREAD_GRAYSCALE), self.imgSize, self.DataAugmentation) for i in batchRange]
         self.index += self.batchSize
 
-        return Batch(gtTexts, imgs)
+        return Batch(truthTexts, imgs)
 
     def truncateLabel(self, text, MaxTextLength):
         #Maps the fileName to the name in the words list
